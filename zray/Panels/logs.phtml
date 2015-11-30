@@ -1,0 +1,115 @@
+<?php 
+$tableParams = array(
+	'tableId' 			=> 'typo3-logs-tree',
+    'tableWidth'        => '3-wide',
+    'summaryTableId'    => 'typo3-logs-summary-table',
+    'summaryTableWidth' => '1-narrow',
+);
+?>
+<div>
+     <?php
+	 	echo $this->zrayTable($tableParams);
+	 ?>
+</div>
+<script type="text/javascript">
+(function() {
+	var tableId = "<?php echo $tableParams['tableId']; ?>";
+	var summaryTableId = "<?php echo $tableParams['summaryTableId']; ?>";
+
+	var storage = zray.getStorage('tlogger');
+
+	var maintable = zray.createGeneralTreeTable(storage, jQuery('#' + tableId));
+	var summaryTable = zray.createSummaryTable(storage, jQuery('#' + summaryTableId));
+
+	maintable.setColumns([
+		{
+			label: 'Caller',
+			propertyName: 'caller',
+			sortable:true,
+			width: '25%',
+		},
+		{
+			label: 'Message',
+			propertyName: 'message',
+			sortable:true,
+			width: '30%',
+		},
+		{
+			label: 'Level',
+			propertyName: 'lvl',
+			sortable:true,
+			width: '15%',
+		},
+		{
+			label: 'Type',
+			propertyName: 'type',
+			sortable:true,
+			width: '15%',
+		},
+	]);
+
+	summaryTable.setColumns([
+       {
+            label: '',
+            propertyName: 'type',
+            width: '10%',
+            getHtml: function(value, record) {
+                return summaryTable.createCheckboxColumn(value, record, summaryTable);
+            }
+       },
+       {
+           label: 'Type',
+           propertyName: 'type',
+           width: '80%',
+       },
+       {
+			label: 'Count',
+			propertyName: 'count',
+			width: '10%',
+			attributes: {'class': 'zdb-numerical'},
+			getHtml: function(val) {
+				return '(' + val + ')';
+			}
+		}
+    ]);
+
+	summaryTable.setFilterColumn('type');
+	summaryTable.setUpdateCallback(function (data) {
+		if (! data) {
+			return [];
+		}
+
+		var list = {};
+		data.forEach(function(obj){
+			if (list[obj.type]) {
+				list[obj.type]++;
+			} else {
+				list[obj.type] = 1;
+			}
+		});
+
+		var types = [];
+		var maxCount = 0;
+
+		for(var key in list) {
+			types.push({type: key, count: list[key]});
+			maxCount += parseInt(list[key]);
+		}
+
+		types.unshift({type: 'All', count: maxCount});
+		return types;
+	});
+
+	// create pager
+	zray.createPager(storage, jQuery('#typo3-logs-pager'));
+	// create search
+	zray.createSearch(storage, jQuery('#typo3-logs-search'), maintable);
+	
+	zray.registerDataHandler('TYPO3', 'tlogger', function(extensionData, requestData) {
+		storage.setData(extensionData);
+		zray.updateMenuTitle('TYPO3', 'tlogger', 'Logs (' + extensionData.length + ')');
+	});
+
+})();
+</script>
+

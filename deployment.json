@@ -1,0 +1,13 @@
+{
+  "name" : "TYPO3",
+  "display_name" : "TYPO3",
+  "version" : "1.0.0",
+  "type": ["zray"],
+  "logo": "logo.png",
+  "readme": "README.txt",
+  "dependencies": {
+    "plugin": {
+      "min": "1.0.0"
+    }
+  }
+}
